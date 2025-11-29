@@ -25,7 +25,7 @@ export const Footer = ({ language }: FooterProps) => {
       <div className="container px-4 mx-auto">
         <div className="flex flex-col items-center justify-center gap-6">
           <div className="flex items-center gap-2">
-            <Waves className="h-8 w-8 text-secondary" />
+            <Waves className="h-8 w-8 text-accent" />
             <span className="text-2xl font-bold">TransWave</span>
           </div>
           <p className="text-center text-primary-foreground/80 max-w-md">

@@ -53,7 +53,7 @@ export const Hero = ({ language }: HeroProps) => {
             </h1>
           </div>
           
-          <h2 className="text-2xl md:text-4xl font-semibold text-secondary mb-6">
+          <h2 className="text-2xl md:text-4xl font-semibold text-accent mb-6">
             {t.subtitle}
           </h2>
           

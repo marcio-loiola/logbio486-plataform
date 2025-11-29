@@ -80,8 +80,8 @@ export const Differentials = ({ language }: DifferentialsProps) => {
               <Card key={index} className="border-border hover:shadow-xl transition-all duration-300 hover:border-secondary">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
-                      <Icon className="h-6 w-6 text-accent" />
+                    <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-accent flex items-center justify-center">
+                      <Icon className="h-6 w-6 text-accent-foreground" />
                     </div>
                     <div>
                       <h3 className="text-xl font-semibold text-foreground mb-2">

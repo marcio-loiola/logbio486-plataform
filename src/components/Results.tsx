@@ -78,7 +78,7 @@ export const Results = ({ language }: ResultsProps) => {
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             {t.title}
           </h2>
-          <p className="text-xl text-secondary">{t.subtitle}</p>
+          <p className="text-xl text-accent">{t.subtitle}</p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -88,7 +88,7 @@ export const Results = ({ language }: ResultsProps) => {
               <Card key={index} className="bg-background/10 backdrop-blur-sm border-primary-foreground/20 hover:bg-background/20 transition-all duration-300">
                 <CardContent className="p-6 text-center">
                   <Icon className="h-12 w-12 mx-auto mb-4 text-accent" />
-                  <div className="text-4xl font-bold text-secondary mb-2">
+                  <div className="text-4xl font-bold text-accent mb-2">
                     {metric.value}
                   </div>
                   <h3 className="text-lg font-semibold mb-2">

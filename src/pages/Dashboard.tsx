@@ -1,21 +1,23 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setAuth } from '@/store/slices/authSlice';
-import { setEntries, setLoading } from '@/store/slices/logbookSlice';
 import { Button } from '@/components/ui/button';
-import { LogOut, Plus } from 'lucide-react';
-import LogbookForm from '@/components/LogbookForm';
-import LogbookList from '@/components/LogbookList';
-import { useToast } from '@/hooks/use-toast';
+import { LogOut, LayoutDashboard, Ship, Activity, Settings } from 'lucide-react';
+import { KPICard } from '@/components/dashboard/KPICard';
+import { TimeSeriesChart } from '@/components/dashboard/TimeSeriesChart';
+import { PredictionComponent } from '@/components/prediction/PredictionComponent';
+import { getFleetOverview } from '@/services/api';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  const { toast } = useToast();
 
+  // Auth check
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       dispatch(setAuth({ user: session?.user ?? null, session }));
@@ -34,66 +36,145 @@ export default function Dashboard() {
     return () => subscription.unsubscribe();
   }, [dispatch, navigate]);
 
-  useEffect(() => {
-    if (user) {
-      loadEntries();
-    }
-  }, [user]);
-
-  const loadEntries = async () => {
-    dispatch(setLoading(true));
-    const { data, error } = await supabase
-      .from('logbook_entries')
-      .select('*')
-      .order('entry_date', { ascending: false });
-
-    dispatch(setLoading(false));
-
-    if (error) {
-      toast({ title: 'Error', description: 'Failed to load logbook entries', variant: 'destructive' });
-    } else {
-      dispatch(setEntries(data || []));
-    }
-  };
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate('/auth');
   };
 
+  // Data fetching
+  const { data: fleetData, isLoading } = useQuery({
+    queryKey: ['fleetOverview'],
+    queryFn: getFleetOverview,
+  });
+
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">LogBio Platform</h1>
-            <p className="text-sm text-muted-foreground">Biofouling Management System</p>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+        <div className="container mx-auto px-4 h-16 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <div className="bg-[#003950] p-1.5 rounded-lg">
+              <Ship className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-[#003950]">LogBio</h1>
+              <p className="text-xs text-slate-500 font-medium">Fleet Intelligence</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+          
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-2 text-sm text-slate-600">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Sistema Operacional
+            </div>
+            <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="text-slate-600 hover:text-red-600">
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid gap-8 lg:grid-cols-2">
+      <main className="container mx-auto px-4 py-8 space-y-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                New Logbook Entry
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Record vessel operational data and observations
-              </p>
-            </div>
-            <LogbookForm onSuccess={loadEntries} />
+            <h2 className="text-2xl font-bold text-slate-900">Dashboard Principal</h2>
+            <p className="text-slate-500">Visão geral da frota e monitoramento de bioincrustação</p>
           </div>
-          <div>
-            <LogbookList />
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              <Settings className="mr-2 h-4 w-4" />
+              Configurações
+            </Button>
+            <Button className="bg-[#003950] hover:bg-[#002a3b]">
+              <Activity className="mr-2 h-4 w-4" />
+              Gerar Relatório
+            </Button>
           </div>
         </div>
+
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="bg-white border border-slate-200 p-1">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-slate-100 data-[state=active]:text-[#003950]">Visão Geral</TabsTrigger>
+            <TabsTrigger value="prediction" className="data-[state=active]:bg-slate-100 data-[state=active]:text-[#003950]">Predição & IA</TabsTrigger>
+            <TabsTrigger value="ships" className="data-[state=active]:bg-slate-100 data-[state=active]:text-[#003950]">Navios</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6">
+            {/* KPIs Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {isLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <KPICard key={i} title="" value="" isLoading={true} />
+                ))
+              ) : (
+                fleetData?.kpis.map((kpi) => (
+                  <KPICard
+                    key={kpi.id}
+                    title={kpi.title}
+                    value={kpi.value}
+                    unit={kpi.unit}
+                    trend={kpi.trend}
+                    trendValue={kpi.trendValue}
+                    status={kpi.status}
+                  />
+                ))
+              )}
+            </div>
+
+            {/* Main Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <TimeSeriesChart
+                  title="Performance Média da Frota"
+                  description="Histórico de eficiência hidrodinâmica dos últimos 30 dias"
+                  data={fleetData?.performanceHistory || []}
+                  isLoading={isLoading}
+                />
+              </div>
+              <div className="lg:col-span-1 space-y-4">
+                {/* Side widgets could go here */}
+                <div className="bg-[#003950] rounded-xl p-6 text-white h-full flex flex-col justify-between relative overflow-hidden">
+                  <div className="relative z-10">
+                    <h3 className="font-bold text-lg mb-2">Status da Frota</h3>
+                    <div className="space-y-4 mt-6">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-300">Em Operação</span>
+                        <span className="font-bold text-2xl">{fleetData?.activeShips || 0}</span>
+                      </div>
+                      <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                        <div className="bg-emerald-400 h-full" style={{ width: '92%' }}></div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-slate-300">Em Manutenção</span>
+                        <span className="font-bold text-2xl">{(fleetData?.totalShips || 0) - (fleetData?.activeShips || 0)}</span>
+                      </div>
+                      <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+                        <div className="bg-amber-400 h-full" style={{ width: '8%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+                  <div className="absolute top-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="prediction">
+            <PredictionComponent />
+          </TabsContent>
+
+          <TabsContent value="ships">
+            <div className="p-12 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+              <Ship className="mx-auto h-12 w-12 text-slate-300 mb-4" />
+              <h3 className="text-lg font-medium text-slate-900">Lista de Navios</h3>
+              <p className="text-slate-500">Funcionalidade em desenvolvimento.</p>
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
