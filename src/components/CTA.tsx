@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Rocket } from "lucide-react";
+import HeroButton from "./HeroButton";
 
 interface CTAProps {
   language: "en" | "pt";
@@ -35,10 +36,7 @@ export const CTA = ({ language }: CTAProps) => {
             {t.description}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="text-lg">
-              {t.primaryCTA}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <HeroButton language={language} />
             <Button
               variant="outline"
               size="lg"
