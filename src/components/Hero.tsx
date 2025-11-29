@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Waves } from "lucide-react";
 import heroShip from "@/assets/hero-ship.jpg";
+import HeroButton from "./HeroButton";
 
 interface HeroProps {
   language: "en" | "pt";
@@ -61,10 +62,7 @@ export const Hero = ({ language }: HeroProps) => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="hero" size="lg" className="text-lg">
-              {t.cta}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <HeroButton language={language} />
             <Button variant="outline" size="lg" className="text-lg bg-background/10 backdrop-blur-sm border-primary-foreground/30 text-primary-foreground hover:bg-background/20">
               {t.secondary}
             </Button>
