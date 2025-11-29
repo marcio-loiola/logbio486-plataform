@@ -1,73 +1,83 @@
-# Welcome to your Lovable project
+# LogBio486 Platform
 
-## Project info
+Este projeto é uma plataforma web desenvolvida com React, Vite e TypeScript, focada no gerenciamento de diários de bordo (Logbooks).
 
-**URL**: https://lovable.dev/projects/872522d9-2ee0-415e-8f79-0797df3b8303
+## 🚀 Visão Geral
 
-## How can I edit this code?
+A aplicação oferece uma interface moderna e responsiva, incluindo uma landing page informativa, sistema de autenticação e um dashboard para gerenciamento de registros.
 
-There are several ways of editing your application.
+### Principais Funcionalidades
 
-**Use Lovable**
+- **Landing Page**: Apresentação do produto com seções de Solução, Como Funciona, Diferenciais e Depoimentos.
+- **Autenticação**: Sistema de login e registro de usuários.
+- **Dashboard**: Área restrita para gerenciamento de dados.
+- **Logbook**: Funcionalidade principal para criar e listar registros de diário de bordo.
+- **Responsividade**: Interface adaptável para diferentes tamanhos de tela.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/872522d9-2ee0-415e-8f79-0797df3b8303) and start prompting.
+## 🛠️ Tecnologias Utilizadas
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Core**: React, Vite, TypeScript
+- **Estilização**: Tailwind CSS, Shadcn UI
+- **Gerenciamento de Estado**: Redux Toolkit
+- **Backend / Dados**: Supabase, React Query
+- **Roteamento**: React Router DOM
+- **Formulários**: React Hook Form, Zod
 
-**Use your preferred IDE**
+## 📂 Estrutura do Projeto
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Pastas Principais (`src/`)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- **`pages/`**: Contém as páginas principais da aplicação (rotas).
+  - `Index.tsx`: Landing page pública.
+  - `Auth.tsx`: Página de autenticação (Login/Cadastro).
+  - `Dashboard.tsx`: Painel principal do usuário.
+  - `NotFound.tsx`: Página de erro 404.
 
-Follow these steps:
+- **`components/`**: Componentes reutilizáveis e seções da página.
+  - **Landing Page**: `Hero`, `Solution`, `HowItWorks`, `Differentials`, `Testimonials`, `CTA`, `Footer`.
+  - **Funcionalidades**: `LogbookForm` (formulário de registro), `LogbookList` (listagem).
+  - **UI**: Componentes de interface genéricos (botões, inputs, cards) em `ui/`.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- **`store/`**: Gerenciamento de estado global com Redux.
+  - `slices/authSlice.ts`: Estado de autenticação.
+  - `slices/logbookSlice.ts`: Estado dos logbooks.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **`lib/`**: Configurações e utilitários (ex: cliente do Supabase).
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 🚦 Guia de Execução
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Siga os passos abaixo para rodar o projeto localmente:
+
+### Pré-requisitos
+
+- Node.js (versão 18 ou superior recomendada)
+- npm ou yarn
+
+### Instalação
+
+1. Clone o repositório (se ainda não o fez):
+   ```bash
+   git clone <URL_DO_REPOSITORIO>
+   ```
+
+2. Instale as dependências:
+   ```bash
+   npm install
+   ```
+
+### Rodando o Projeto
+
+Para iniciar o servidor de desenvolvimento:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O projeto estará acessível em `http://localhost:8080` (ou outra porta indicada no terminal).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Scripts Disponíveis
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/872522d9-2ee0-415e-8f79-0797df3b8303) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- `npm run dev`: Inicia o servidor de desenvolvimento.
+- `npm run build`: Gera a build de produção.
+- `npm run lint`: Executa a verificação de código (linting).
+- `npm run preview`: Visualiza a build de produção localmente.
