@@ -50,8 +50,7 @@ Siga os passos abaixo para rodar o projeto localmente:
 
 ### Pré-requisitos
 
-- Node.js (versão 18 ou superior recomendada)
-- npm ou yarn
+- [Bun](https://bun.sh/) (v1.0 ou superior)
 
 ### Instalação
 
@@ -62,7 +61,11 @@ Siga os passos abaixo para rodar o projeto localmente:
 
 2. Instale as dependências:
    ```bash
-   npm install
+   bun install
+   ```
+   *Nota: Se estiver no Windows e encontrar erros com scripts (ex: esbuild), tente:*
+   ```bash
+   bun install --ignore-scripts
    ```
 
 ### Rodando o Projeto
@@ -70,14 +73,19 @@ Siga os passos abaixo para rodar o projeto localmente:
 Para iniciar o servidor de desenvolvimento:
 
 ```bash
-npm run dev
+bun run dev
+```
+
+*Se houver erros ao iniciar o servidor no Windows, use o comando direto:*
+```bash
+bun node_modules/vite/bin/vite.js
 ```
 
 O projeto estará acessível em `http://localhost:8080` (ou outra porta indicada no terminal).
 
 ### Scripts Disponíveis
 
-- `npm run dev`: Inicia o servidor de desenvolvimento.
-- `npm run build`: Gera a build de produção.
-- `npm run lint`: Executa a verificação de código (linting).
-- `npm run preview`: Visualiza a build de produção localmente.
+- `bun run dev`: Inicia o servidor de desenvolvimento.
+- `bun run build`: Gera a build de produção.
+- `bun run lint`: Executa a verificação de código (linting).
+- `bun run preview`: Visualiza a build de produção localmente.

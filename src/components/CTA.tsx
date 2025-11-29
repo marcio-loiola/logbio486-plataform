@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Rocket } from "lucide-react";
-import HeroButton from "./HeroButton";
+import { Link } from "react-router-dom";
 
 interface CTAProps {
   language: "en" | "pt";
@@ -25,22 +25,26 @@ export const CTA = ({ language }: CTAProps) => {
   const t = content[language];
 
   return (
-    <section className="py-20 bg-gradient-to-br from-ocean-light to-teal-bright text-primary-foreground">
+    <section className="py-20 bg-[#003950] text-white">
       <div className="container px-4 mx-auto">
         <div className="max-w-4xl mx-auto text-center">
-          <Rocket className="h-16 w-16 mx-auto mb-6 text-accent" />
+          <Rocket className="h-16 w-16 mx-auto mb-6 text-[#FACC15]" />
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
             {t.title}
           </h2>
-          <p className="text-xl mb-10">
+          <p className="text-xl mb-10 text-slate-200">
             {t.description}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <HeroButton language={language} />
+            <Link to="/auth">
+              <Button size="lg" className="text-lg bg-[#2563EB] hover:bg-[#1d4ed8] text-white px-8 h-12 shadow-lg hover:shadow-blue-500/25 transition-all">
+                {t.primaryCTA}
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="lg"
-              className="text-lg bg-background/10 backdrop-blur-sm border-primary-foreground/30 text-primary-foreground hover:bg-background/20"
+              className="text-lg bg-transparent border-white/30 text-white hover:bg-white/10 px-8 h-12"
             >
               {t.secondaryCTA}
             </Button>

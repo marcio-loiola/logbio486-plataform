@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Database, LineChart, Monitor, Bell, Route } from "lucide-react";
+import { Database, Brain, Zap } from "lucide-react";
 
 interface HowItWorksProps {
   language: "en" | "pt";
@@ -7,64 +7,44 @@ interface HowItWorksProps {
 
 const content = {
   en: {
-    title: "How It Works",
-    subtitle: "From Data to Action in 5 Steps",
+    title: "The Solution",
+    subtitle: "How TransWave Works",
     steps: [
       {
         icon: Database,
-        title: "Data Collection & Modeling",
-        description: "Gathering technical specifications, navigation routes, and environmental conditions from each vessel",
+        title: "Continuous Monitoring",
+        description: "Real-time operational and environmental data collection from every vessel.",
       },
       {
-        icon: LineChart,
-        title: "Predictive Analysis",
-        description: "ML algorithms analyze biofouling impact on fuel consumption and emissions",
+        icon: Brain,
+        title: "Predictive Prediction",
+        description: "Algorithms identify growth patterns before the human eye can see.",
       },
       {
-        icon: Monitor,
-        title: "Interactive Dashboards",
-        description: "Real-time visualization of fleet status, risk levels, and performance metrics",
-      },
-      {
-        icon: Bell,
-        title: "Dynamic Updates",
-        description: "Continuous learning from new data to improve prediction accuracy",
-      },
-      {
-        icon: Route,
-        title: "Preventive Recommendations",
-        description: "Actionable insights for route optimization and maintenance scheduling",
+        icon: Zap,
+        title: "Optimization",
+        description: "Precise alerts on the ideal cleaning moment to maximize efficiency.",
       },
     ],
   },
   pt: {
-    title: "Como Funciona",
-    subtitle: "De Dados a Ação em 5 Passos",
+    title: "A Solução",
+    subtitle: "Como a TransWave Funciona",
     steps: [
       {
         icon: Database,
-        title: "Coleta e Modelagem de Dados",
-        description: "Reunindo especificações técnicas, rotas de navegação e condições ambientais de cada embarcação",
+        title: "Monitoramento Contínuo",
+        description: "Dados operacionais e ambientais em tempo real de cada embarcação.",
       },
       {
-        icon: LineChart,
-        title: "Análise Preditiva",
-        description: "Algoritmos de ML analisam impacto da bioincrustação no consumo de combustível e emissões",
+        icon: Brain,
+        title: "Previsão Preditiva",
+        description: "Algoritmos identificam padrões de crescimento antes que o olho humano veja.",
       },
       {
-        icon: Monitor,
-        title: "Dashboards Interativos",
-        description: "Visualização em tempo real do status da frota, níveis de risco e métricas de desempenho",
-      },
-      {
-        icon: Bell,
-        title: "Atualizações Dinâmicas",
-        description: "Aprendizado contínuo com novos dados para melhorar a precisão das previsões",
-      },
-      {
-        icon: Route,
-        title: "Recomendações Preventivas",
-        description: "Insights acionáveis para otimização de rotas e agendamento de manutenção",
+        icon: Zap,
+        title: "Otimização",
+        description: "Alertas precisos sobre o momento ideal de limpeza para maximizar eficiência.",
       },
     ],
   },
@@ -74,48 +54,35 @@ export const HowItWorks = ({ language }: HowItWorksProps) => {
   const t = content[language];
 
   return (
-    <section className="py-20 bg-background">
+    <section id="solution" className="py-24 bg-slate-50">
       <div className="container px-4 mx-auto">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+        <div className="text-center mb-16">
+          <div className="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-[#003950] uppercase bg-[#003950]/5 rounded-full">
+            {t.subtitle}
+          </div>
+          <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4">
             {t.title}
           </h2>
-          <p className="text-xl text-primary mb-6">{t.subtitle}</p>
         </div>
 
-        <div className="max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {t.steps.map((step, index) => {
             const Icon = step.icon;
             return (
-              <div key={index} className="relative">
-                <Card className="border-border mb-6 hover:shadow-lg transition-shadow duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-6">
-                      <div className="flex-shrink-0">
-                        <div className="w-16 h-16 rounded-full bg-secondary/10 flex items-center justify-center border-2 border-secondary">
-                          <Icon className="h-8 w-8 text-secondary" />
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-3xl font-bold text-secondary">
-                            {index + 1}
-                          </span>
-                          <h3 className="text-xl font-semibold text-foreground">
-                            {step.title}
-                          </h3>
-                        </div>
-                        <p className="text-muted-foreground">{step.description}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                {index < t.steps.length - 1 && (
-                  <div className="flex justify-center mb-6">
-                    <div className="w-0.5 h-8 bg-secondary/30" />
+              <Card key={index} className="border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-white group overflow-hidden">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 rounded-2xl bg-[#003950] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="h-8 w-8 text-white" />
                   </div>
-                )}
-              </div>
+                  <h3 className="text-xl font-bold text-[#0F172A] mb-3">
+                    {step.title}
+                  </h3>
+                  <p className="text-[#475569] leading-relaxed">
+                    {step.description}
+                  </p>
+                </CardContent>
+                <div className="h-1 w-full bg-gradient-to-r from-[#003950] to-[#006159] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+              </Card>
             );
           })}
         </div>
