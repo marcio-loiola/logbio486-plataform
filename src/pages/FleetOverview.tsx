@@ -130,6 +130,104 @@ export default function FleetOverview() {
             </div>
         </div>
       </div>
+
+      {/* Location & Risk Map + Priorities */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* World Map */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-[#003950]">Localização e Risco</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="relative w-full h-[300px] bg-slate-100 rounded-lg overflow-hidden">
+              {/* Simple world map representation - in production, use a library like react-simple-maps */}
+              <svg viewBox="0 0 1000 500" className="w-full h-full">
+                {/* Simplified world map paths */}
+                <path 
+                  d="M 100 150 Q 150 140, 200 160 L 250 140 L 300 170 L 350 150 L 400 180 L 450 160 L 500 190 L 550 170 L 600 200 L 650 180 L 700 210 L 750 190 L 800 220 L 850 200 L 900 230"
+                  fill="none" 
+                  stroke="#CBD5E1" 
+                  strokeWidth="1"
+                />
+                <ellipse cx="300" cy="250" rx="150" ry="80" fill="#E2E8F0" opacity="0.3" />
+                <ellipse cx="650" cy="200" rx="120" ry="60" fill="#E2E8F0" opacity="0.3" />
+                <ellipse cx="500" cy="300" rx="100" ry="50" fill="#E2E8F0" opacity="0.3" />
+                
+                {/* Ship markers */}
+                {dashboardData?.critical_ships?.slice(0, 5).map((ship, idx) => {
+                  const positions = [
+                    { x: 250, y: 200 },
+                    { x: 450, y: 250 },
+                    { x: 650, y: 180 },
+                    { x: 350, y: 280 },
+                    { x: 550, y: 220 },
+                  ];
+                  const pos = positions[idx] || { x: 400, y: 250 };
+                  const color = ship.level === 'critical' ? '#EF4444' : ship.level === 'high' ? '#F59E0B' : '#10B981';
+                  
+                  return (
+                    <g key={ship.id}>
+                      <circle cx={pos.x} cy={pos.y} r="8" fill={color} opacity="0.8" />
+                      <circle cx={pos.x} cy={pos.y} r="12" fill={color} opacity="0.3" />
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+            <div className="mt-4 flex gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <span className="text-slate-600">Crítico</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                <span className="text-slate-600">Alto</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span className="text-slate-600">Normal</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Priorities */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-[#003950]">Prioridades de Atenção</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {dashboardData?.critical_ships?.slice(0, 4).map((ship) => {
+                const levelColors = {
+                  critical: { bg: 'bg-red-50', border: 'border-red-500', text: 'text-red-700', bar: 'bg-red-500' },
+                  high: { bg: 'bg-amber-50', border: 'border-amber-500', text: 'text-amber-700', bar: 'bg-amber-500' },
+                  medium: { bg: 'bg-blue-50', border: 'border-blue-500', text: 'text-blue-700', bar: 'bg-blue-500' },
+                  low: { bg: 'bg-slate-50', border: 'border-slate-500', text: 'text-slate-700', bar: 'bg-slate-500' },
+                };
+                const colors = levelColors[ship.level as keyof typeof levelColors] || levelColors.low;
+
+                return (
+                  <div key={ship.id} className={`p-3 rounded-lg border-l-4 ${colors.border} ${colors.bg}`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-semibold text-sm text-[#003950]">{ship.name}</p>
+                        <p className={`text-xs ${colors.text} uppercase font-medium mt-1`}>
+                          {ship.level === 'critical' ? 'Crítico' : ship.level === 'high' ? 'Alto' : ship.level === 'medium' ? 'Médio' : 'Baixo'}
+                        </p>
+                      </div>
+                      <span className="text-lg font-bold text-[#003950]">{ship.risk}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                      <div className={`${colors.bar} h-full transition-all`} style={{ width: `${ship.risk}%` }}></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

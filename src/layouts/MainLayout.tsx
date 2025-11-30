@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/Sidebar';
 import { Outlet } from 'react-router-dom';
+import { ApiStatusIndicator } from '@/components/ApiStatusIndicator';
 
 export const MainLayout = () => {
   return (
@@ -10,6 +11,7 @@ export const MainLayout = () => {
           <Outlet />
         </div>
       </main>
+      <ApiStatusIndicator />
     </div>
   );
 };

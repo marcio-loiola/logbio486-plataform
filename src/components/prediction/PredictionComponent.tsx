@@ -103,11 +103,13 @@ export const PredictionComponent = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {ships?.map((ship) => (
+                        {Array.isArray(ships) ? ships.map((ship) => (
                           <SelectItem key={ship.id} value={ship.id.toString()}>
                             {ship.name}
                           </SelectItem>
-                        ))}
+                        )) : (
+                          <SelectItem value="loading" disabled>Carregando navios...</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
