@@ -122,6 +122,35 @@ export interface Ship {
   ship_class: string;
 }
 
+export interface BiofoulingReportItem {
+  ship_name: string;
+  event_date: string;
+  session_id: string;
+  consumption: number;
+  baseline_consumption: number;
+  excess_ratio: number;
+  bio_index: number;
+  bio_class: string;
+  additional_fuel_tons?: number;
+  additional_cost_usd?: number;
+  additional_co2_tons?: number;
+}
+
+export interface BiofoulingReport {
+  total_records: number;
+  records: BiofoulingReportItem[];
+}
+
+export interface BiofoulingReportParams {
+  ship_name?: string;
+  start_date?: string;
+  end_date?: string;
+  min_bio_index?: number;
+  bio_class?: string;
+  limit?: number;
+  offset?: number;
+}
+
 // =============================================================================
 // API CLIENT
 // =============================================================================
@@ -252,11 +281,91 @@ export const getDashboard = async (): Promise<DashboardData> => {
   }
 };
 
-export const getFleetOverview = async (): Promise<FleetOverview> => {
+// Biofouling Report endpoint
+export const getBiofoulingReport = async (params: BiofoulingReportParams = {}): Promise<BiofoulingReport> => {
   try {
-    const response = await fetch(`${API_URL}/ships/fleet/summary`);
+    const queryParams = new URLSearchParams();
+    if (params.ship_name) queryParams.append('ship_name', params.ship_name);
+    if (params.start_date) queryParams.append('start_date', params.start_date);
+    if (params.end_date) queryParams.append('end_date', params.end_date);
+    if (params.min_bio_index !== undefined) queryParams.append('min_bio_index', params.min_bio_index.toString());
+    if (params.bio_class) queryParams.append('bio_class', params.bio_class);
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.offset) queryParams.append('offset', params.offset.toString());
+
+    const response = await fetch(`${API_URL}/reports/biofouling?${queryParams.toString()}`);
     
     if (!response.ok) {
+      setApiStatus('disconnected');
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    setApiStatus('connected');
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch biofouling report:', error);
+    setApiStatus('disconnected');
+    return { total_records: 0, records: [] };
+  }
+};
+
+// Helper function to get historical performance data from biofouling reports
+const getPerformanceHistory = async (days: number = 30): Promise<TimeSeriesPoint[]> => {
+  try {
+    // Calculate date range
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+
+    // Fetch biofouling report with date filter
+    const report = await getBiofoulingReport({
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0],
+      limit: 1000, // Get more records for better history
+    });
+
+    if (!report || !report.records || report.records.length === 0) {
+      return [];
+    }
+
+    // Group by date and calculate average efficiency (inverse of bio_index)
+    const dailyData: Record<string, { total: number; count: number }> = {};
+    
+    report.records.forEach((record) => {
+      const date = new Date(record.event_date).toISOString().split('T')[0];
+      if (!dailyData[date]) {
+        dailyData[date] = { total: 0, count: 0 };
+      }
+      // Efficiency = 100 - (bio_index * 10) to convert 0-10 scale to 0-100%
+      const efficiency = 100 - (record.bio_index * 10);
+      dailyData[date].total += efficiency;
+      dailyData[date].count += 1;
+    });
+
+    // Convert to TimeSeriesPoint array
+    const history: TimeSeriesPoint[] = Object.entries(dailyData)
+      .map(([date, data]) => ({
+        date,
+        value: data.total / data.count, // Average efficiency
+        type: 'historical' as const,
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    return history;
+  } catch (error) {
+    console.error('Failed to get performance history:', error);
+    return [];
+  }
+};
+
+export const getFleetOverview = async (): Promise<FleetOverview> => {
+  try {
+    const [fleetSummary, performanceHistory] = await Promise.all([
+      fetch(`${API_URL}/ships/fleet/summary`).then(r => r.ok ? r.json() : null),
+      getPerformanceHistory(30), // Get last 30 days
+    ]);
+    
+    if (!fleetSummary) {
       setApiStatus('disconnected');
       return {
         totalShips: 33,
@@ -268,7 +377,7 @@ export const getFleetOverview = async (): Promise<FleetOverview> => {
     }
 
     setApiStatus('connected');
-    const data: FleetSummary = await response.json();
+    const data: FleetSummary = fleetSummary;
 
     return {
       totalShips: data.total_ships,
@@ -277,9 +386,10 @@ export const getFleetOverview = async (): Promise<FleetOverview> => {
       kpis: [
         { id: "1", title: "Custo Extra Total", value: `USD ${(data.fleet_total_additional_cost_usd/1000).toFixed(1)}k`, unit: "", trend: "up", trendValue: "", status: "error" },
         { id: "2", title: "Combustível Extra", value: data.fleet_total_additional_fuel.toFixed(0), unit: "tons", trend: "up", trendValue: "", status: "warning" },
-        { id: "3", title: "Emissões CO2", value: data.fleet_total_additional_co2.toFixed(0), unit: "tons", trend: "up", trendValue: "", status: "error" }
+        { id: "3", title: "Emissões CO2", value: data.fleet_total_additional_co2.toFixed(0), unit: "tons", trend: "up", trendValue: "", status: "error" },
+        { id: "4", title: "Índice Médio Biofouling", value: data.fleet_avg_bio_index.toFixed(2), unit: "/10", trend: data.fleet_avg_bio_index > 5 ? "up" : "down", trendValue: `${data.fleet_avg_bio_index.toFixed(1)}`, status: data.fleet_avg_bio_index >= 7 ? "error" : data.fleet_avg_bio_index >= 4 ? "warning" : "success" }
       ],
-      performanceHistory: [] // Would need another endpoint for history
+      performanceHistory: performanceHistory
     };
   } catch (error) {
     console.warn('Failed to fetch fleet overview:', error);
@@ -321,7 +431,32 @@ export const getShips = async (): Promise<Ship[]> => {
   }
 };
 
-// Prediction / Scenario Analysis
+// Prediction endpoints
+export const predictBiofouling = async (request: PredictionRequest): Promise<PredictionResponse> => {
+  try {
+    const response = await fetch(`${API_URL}/predictions/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    if (!response.ok) {
+      setApiStatus('disconnected');
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    setApiStatus('connected');
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to predict biofouling:', error);
+    setApiStatus('disconnected');
+    throw error;
+  }
+};
+
+// Prediction / Scenario Analysis (Legacy)
 export const generateInsight = async (params: any): Promise<any> => {
   // Mapping frontend params to backend PredictionRequest
   const requestPayload: PredictionRequest = {

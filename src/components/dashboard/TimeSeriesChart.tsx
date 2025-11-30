@@ -56,71 +56,109 @@ export const TimeSeriesChart = ({
     // For now, let's just plot them.
   }));
 
+  // Check if there's any prediction data
+  const hasPredictionData = data.some(point => point.type === 'prediction');
+
   return (
     <div className={cn("p-6 rounded-xl bg-white border border-slate-200 shadow-sm", className)}>
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-        {description && <p className="text-sm text-slate-500">{description}</p>}
+        {description && <p className="text-sm text-slate-500 mt-1">{description}</p>}
       </div>
 
       <div className="h-[300px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 5, bottom: 50 }}>
             <defs>
               <linearGradient id="colorHistorical" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#003950" stopOpacity={0.1}/>
-                <stop offset="95%" stopColor="#003950" stopOpacity={0}/>
+                <stop offset="0%" stopColor="#CBD5E1" stopOpacity={0.25}/>
+                <stop offset="100%" stopColor="#CBD5E1" stopOpacity={0}/>
               </linearGradient>
               <linearGradient id="colorPrediction" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FACC15" stopOpacity={0.1}/>
-                <stop offset="95%" stopColor="#FACC15" stopOpacity={0}/>
+                <stop offset="0%" stopColor="#FACC15" stopOpacity={0.15}/>
+                <stop offset="100%" stopColor="#FACC15" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+            <CartesianGrid 
+              strokeDasharray="2 2" 
+              vertical={false} 
+              horizontal={true}
+              stroke="#E2E8F0" 
+              strokeWidth={0.5}
+            />
             <XAxis 
               dataKey="date" 
               tickLine={false} 
               axisLine={false} 
-              tick={{ fontSize: 12, fill: '#64748B' }}
+              tick={{ fontSize: 11, fill: '#64748B' }}
               tickMargin={10}
+              interval={1}
               tickFormatter={(value) => {
                 const date = new Date(value);
                 return `${date.getDate()}/${date.getMonth() + 1}`;
               }}
             />
             <YAxis 
+              domain={[0, 100]}
+              ticks={[0, 25, 50, 75, 100]}
               tickLine={false} 
               axisLine={false} 
-              tick={{ fontSize: 12, fill: '#64748B' }} 
+              tick={{ fontSize: 11, fill: '#64748B' }} 
               tickFormatter={(value) => `${value}`}
+              width={30}
             />
             <Tooltip 
               contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               itemStyle={{ fontSize: '12px', fontWeight: 500 }}
               labelStyle={{ color: '#64748B', marginBottom: '4px', fontSize: '12px' }}
             />
-            <Legend />
+            <Legend 
+              wrapperStyle={{ paddingTop: '25px' }}
+              iconType="circle"
+              formatter={(value) => `→ ${value}`}
+              align="center"
+              iconSize={8}
+            />
             <Area 
               type="monotone" 
               dataKey="historical" 
               name="Dados Históricos"
-              stroke="#003950" 
-              strokeWidth={2}
+              stroke="#0F172A" 
+              strokeWidth={3}
               fillOpacity={1} 
               fill="url(#colorHistorical)" 
               connectNulls
+              dot={false}
+              activeDot={{ r: 5, fill: '#0F172A', strokeWidth: 0 }}
             />
-            <Area 
-              type="monotone" 
-              dataKey="prediction" 
-              name="Predição (IA)"
-              stroke="#FACC15" 
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              fillOpacity={1} 
-              fill="url(#colorPrediction)" 
-              connectNulls
-            />
+            {hasPredictionData ? (
+              <Area 
+                type="monotone" 
+                dataKey="prediction" 
+                name="Predição (IA)"
+                stroke="#FACC15" 
+                strokeWidth={2.5}
+                strokeDasharray="5 5"
+                fillOpacity={1} 
+                fill="url(#colorPrediction)" 
+                connectNulls
+                dot={false}
+                activeDot={{ r: 5, fill: '#FACC15', strokeWidth: 0 }}
+              />
+            ) : (
+              // Render empty area to show legend even without data
+              <Area 
+                type="monotone" 
+                dataKey="prediction" 
+                name="Predição (IA)"
+                stroke="none"
+                fill="none"
+                strokeWidth={0}
+                fillOpacity={0}
+                connectNulls
+                dot={false}
+              />
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>

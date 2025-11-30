@@ -54,14 +54,14 @@ export default function Integrations() {
     retry: 1,
   });
 
-  const { data: seaConditions, isLoading: isLoadingSea } = useQuery({
+  const { data: seaConditions, isLoading: isLoadingSea, error: seaError } = useQuery({
     queryKey: ['seaConditions', -23.5505, -46.6333],
     queryFn: () => getSeaConditions(-23.5505, -46.6333),
     enabled: loadSeaConditions,
     retry: 1,
   });
 
-  const { data: fuelPrice, isLoading: isLoadingFuel } = useQuery({
+  const { data: fuelPrice, isLoading: isLoadingFuel, error: fuelError } = useQuery({
     queryKey: ['fuelPrice', 'BRSSZ'],
     queryFn: () => getFuelPrices('BRSSZ'),
     enabled: loadFuelPrices,
@@ -80,6 +80,15 @@ export default function Integrations() {
         available: Boolean(available),
         last_check: new Date().toISOString(),
       }));
+    }
+    
+    // If API is available but integrations not configured
+    if (health.api && health.integrations?.configured === false) {
+      return [{
+        service: 'api',
+        available: health.api.available || false,
+        last_check: new Date().toISOString(),
+      }];
     }
     
     // If it's a flat object with service names

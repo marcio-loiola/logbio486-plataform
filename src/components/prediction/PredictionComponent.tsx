@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, Ship, Map, Gauge, Calendar, Activity } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { generateInsight, PredictionResult, PredictionParams, getShips } from "@/services/api";
+import { predictBiofouling, PredictionResponse, PredictionRequest, getShips } from "@/services/api";
 import { TimeSeriesChart } from "@/components/dashboard/TimeSeriesChart";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,14 +29,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
-  shipId: z.string().min(1, "Selecione um navio"),
-  routeId: z.string().min(1, "Selecione uma rota"),
+  ship_name: z.string().min(1, "Selecione um navio"),
   speed: z.number().min(5).max(25),
-  days: z.number().min(1).max(60),
+  duration: z.number().min(1).max(720), // horas
+  days_since_cleaning: z.number().min(0).max(1000),
+  displacement: z.number().optional(),
+  mid_draft: z.number().optional(),
+  beaufort_scale: z.number().min(0).max(12).optional(),
 });
 
 export const PredictionComponent = () => {
-  const [result, setResult] = useState<PredictionResult | null>(null);
+  const [result, setResult] = useState<PredictionResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
@@ -48,26 +51,40 @@ export const PredictionComponent = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      shipId: "",
-      routeId: "",
+      ship_name: "",
       speed: 14,
-      days: 30,
+      duration: 24, // 24 horas = 1 dia
+      days_since_cleaning: 180,
+      displacement: undefined,
+      mid_draft: undefined,
+      beaufort_scale: 3,
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsGenerating(true);
     try {
-      const data = await generateInsight(values as PredictionParams);
+      const request: PredictionRequest = {
+        ship_name: values.ship_name,
+        speed: values.speed,
+        duration: values.duration,
+        days_since_cleaning: values.days_since_cleaning,
+        displacement: values.displacement,
+        mid_draft: values.mid_draft,
+        beaufort_scale: values.beaufort_scale,
+      };
+
+      const data = await predictBiofouling(request);
       setResult(data);
       toast({
         title: "Predição concluída",
         description: "Os dados de performance foram simulados com sucesso.",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Prediction error:', error);
       toast({
         title: "Erro na predição",
-        description: "Não foi possível gerar os insights. Tente novamente.",
+        description: error?.message || "Não foi possível gerar os insights. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -92,7 +109,7 @@ export const PredictionComponent = () => {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
-                name="shipId"
+                name="ship_name"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Navio</FormLabel>
@@ -103,36 +120,13 @@ export const PredictionComponent = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {Array.isArray(ships) ? ships.map((ship) => (
-                          <SelectItem key={ship.id} value={ship.id.toString()}>
+                        {ships && ships.length > 0 ? ships.map((ship) => (
+                          <SelectItem key={ship.id} value={ship.name}>
                             {ship.name}
                           </SelectItem>
                         )) : (
                           <SelectItem value="loading" disabled>Carregando navios...</SelectItem>
                         )}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="routeId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Rota</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a rota" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="route-br-cn">Brasil - China</SelectItem>
-                        <SelectItem value="route-br-eu">Brasil - Europa</SelectItem>
-                        <SelectItem value="route-cbt">Cabotagem Nacional</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -165,17 +159,43 @@ export const PredictionComponent = () => {
 
               <FormField
                 control={form.control}
-                name="days"
+                name="duration"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex justify-between">
-                      <span>Duração (dias)</span>
-                      <span className="text-muted-foreground">{field.value} dias</span>
+                      <span>Duração da Viagem (horas)</span>
+                      <span className="text-muted-foreground">{field.value}h</span>
                     </FormLabel>
                     <FormControl>
                       <Slider
                         min={1}
-                        max={60}
+                        max={720}
+                        step={1}
+                        defaultValue={[field.value]}
+                        onValueChange={(vals) => field.onChange(vals[0])}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      {Math.floor(field.value / 24)} dias e {field.value % 24} horas
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="days_since_cleaning"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex justify-between">
+                      <span>Dias desde última limpeza</span>
+                      <span className="text-muted-foreground">{field.value} dias</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Slider
+                        min={0}
+                        max={1000}
                         step={1}
                         defaultValue={[field.value]}
                         onValueChange={(vals) => field.onChange(vals[0])}
@@ -208,56 +228,83 @@ export const PredictionComponent = () => {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Consumo Estimado
+                    Consumo Previsto
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{result.fuelConsumption.toFixed(0)} ton</div>
+                  <div className="text-2xl font-bold">{result.predicted_consumption.toFixed(2)} ton</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Para a rota completa
+                    Consumo base: {result.baseline_consumption.toFixed(2)} ton
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Risco de Bioincrustação
+                    Índice de Biofouling
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className={cn("text-2xl font-bold", 
-                    result.biofoulingRisk > 70 ? "text-red-600" : 
-                    result.biofoulingRisk > 40 ? "text-amber-600" : "text-emerald-600"
+                    result.bio_index >= 7 ? "text-red-600" : 
+                    result.bio_index >= 4 ? "text-amber-600" : "text-emerald-600"
                   )}>
-                    {result.biofoulingRisk.toFixed(1)}%
+                    {result.bio_index.toFixed(1)}/10
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Probabilidade de acúmulo
+                    Classificação: {result.bio_class}
                   </p>
                 </CardContent>
               </Card>
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Próxima Manutenção
+                    Custo Adicional
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {new Date(result.maintenanceDate).toLocaleDateString()}
+                  <div className="text-2xl font-bold text-red-600">
+                    ${result.additional_cost_usd.toFixed(2)}
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Data recomendada
+                    +{result.additional_fuel_tons.toFixed(2)} ton de combustível
                   </p>
                 </CardContent>
               </Card>
             </div>
 
-            <TimeSeriesChart
-              title="Projeção de Eficiência do Casco"
-              description="Decaimento da performance ao longo do tempo devido à bioincrustação"
-              data={result.chartData}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Excesso de Consumo
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {(result.excess_ratio * 100).toFixed(2)}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Acima do consumo teórico
+                  </p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Emissões Adicionais CO₂
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-amber-600">
+                    {result.additional_co2_tons.toFixed(2)} ton
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Impacto ambiental
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </>
         ) : (
           <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-muted-foreground bg-slate-50 rounded-xl border border-dashed border-slate-200">
