@@ -7,8 +7,20 @@ import { Provider } from 'react-redux';
 import { store } from './store/store';
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
+import ApiTest from "./pages/ApiTest";
 import NotFound from "./pages/NotFound";
+
+// Layouts
+import { MainLayout } from "./layouts/MainLayout";
+import { ShipLayout } from "./layouts/ShipLayout";
+
+// Pages
+import FleetOverview from "./pages/FleetOverview";
+import Prediction from "./pages/Prediction";
+import ShipList from "./pages/ShipList";
+import ShipBasicData from "./pages/ship/ShipBasicData";
+import ShipRadar from "./pages/ship/ShipRadar";
+import ShipFinancial from "./pages/ship/ShipFinancial";
 
 const queryClient = new QueryClient();
 
@@ -22,8 +34,24 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            
+            {/* Main App Routes with Sidebar */}
+            <Route element={<MainLayout />}>
+              <Route path="/dashboard" element={<FleetOverview />} />
+              <Route path="/prediction" element={<Prediction />} />
+              
+              <Route path="/ship" element={<ShipList />} />
+              
+              {/* Ship Details Routes */}
+              <Route path="/ship/:id" element={<ShipLayout />}>
+                <Route index element={<Navigate to="basic" replace />} />
+                <Route path="basic" element={<ShipBasicData />} />
+                <Route path="radar" element={<ShipRadar />} />
+                <Route path="financial" element={<ShipFinancial />} />
+              </Route>
+            </Route>
+
+            <Route path="/api-test" element={<ApiTest />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

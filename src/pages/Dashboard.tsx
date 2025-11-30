@@ -9,8 +9,9 @@ import { LogOut, LayoutDashboard, Ship, Activity, Settings } from 'lucide-react'
 import { KPICard } from '@/components/dashboard/KPICard';
 import { TimeSeriesChart } from '@/components/dashboard/TimeSeriesChart';
 import { PredictionComponent } from '@/components/prediction/PredictionComponent';
-import { getFleetOverview } from '@/services/api';
+import { getFleetOverview, getShips } from '@/services/api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import LogbookList from '@/components/LogbookList';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -45,6 +46,11 @@ export default function Dashboard() {
   const { data: fleetData, isLoading } = useQuery({
     queryKey: ['fleetOverview'],
     queryFn: getFleetOverview,
+  });
+
+  const { data: ships, isLoading: isLoadingShips } = useQuery({
+    queryKey: ['ships'],
+    queryFn: getShips,
   });
 
   return (
@@ -99,6 +105,7 @@ export default function Dashboard() {
             <TabsTrigger value="overview" className="data-[state=active]:bg-slate-100 data-[state=active]:text-[#003950]">Visão Geral</TabsTrigger>
             <TabsTrigger value="prediction" className="data-[state=active]:bg-slate-100 data-[state=active]:text-[#003950]">Predição & IA</TabsTrigger>
             <TabsTrigger value="ships" className="data-[state=active]:bg-slate-100 data-[state=active]:text-[#003950]">Navios</TabsTrigger>
+            <TabsTrigger value="logbooks" className="data-[state=active]:bg-slate-100 data-[state=active]:text-[#003950]">Diário de Bordo</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -168,11 +175,36 @@ export default function Dashboard() {
           </TabsContent>
 
           <TabsContent value="ships">
-            <div className="p-12 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-              <Ship className="mx-auto h-12 w-12 text-slate-300 mb-4" />
-              <h3 className="text-lg font-medium text-slate-900">Lista de Navios</h3>
-              <p className="text-slate-500">Funcionalidade em desenvolvimento.</p>
-            </div>
+            {isLoadingShips ? (
+              <div className="flex justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {ships?.map((ship) => (
+                  <div key={ship.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <Ship className="h-6 w-6 text-blue-600" />
+                      </div>
+                    </div>
+                    <h3 className="font-bold text-lg text-slate-900 mb-1">{ship.name}</h3>
+                    <p className="text-sm text-slate-500 mb-4">IMO: {ship.imo}</p>
+                    <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                      <span className="text-sm text-slate-600">Status</span>
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-emerald-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Operacional
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="logbooks">
+            <LogbookList />
           </TabsContent>
         </Tabs>
       </main>

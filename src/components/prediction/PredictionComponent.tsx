@@ -3,7 +3,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, Ship, Map, Gauge, Calendar, Activity } from "lucide-react";
-import { generateInsight, PredictionResult, PredictionParams } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
+import { generateInsight, PredictionResult, PredictionParams, getShips } from "@/services/api";
 import { TimeSeriesChart } from "@/components/dashboard/TimeSeriesChart";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,8 +37,13 @@ const formSchema = z.object({
 
 export const PredictionComponent = () => {
   const [result, setResult] = useState<PredictionResult | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+
+  const { data: ships, isLoading: isLoadingShips } = useQuery({
+    queryKey: ['ships'],
+    queryFn: getShips,
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,7 +56,7 @@ export const PredictionComponent = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
+    setIsGenerating(true);
     try {
       const data = await generateInsight(values as PredictionParams);
       setResult(data);
@@ -65,7 +71,7 @@ export const PredictionComponent = () => {
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   }
 
@@ -93,13 +99,15 @@ export const PredictionComponent = () => {
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione o navio" />
+                          <SelectValue placeholder={isLoadingShips ? "Carregando..." : "Selecione o navio"} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ship-001">Navio Alpha (Petroleiro)</SelectItem>
-                        <SelectItem value="ship-002">Navio Beta (Gaseiro)</SelectItem>
-                        <SelectItem value="ship-003">Navio Gamma (Petroleiro)</SelectItem>
+                        {ships?.map((ship) => (
+                          <SelectItem key={ship.id} value={ship.id.toString()}>
+                            {ship.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -176,8 +184,8 @@ export const PredictionComponent = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
+              <Button type="submit" className="w-full" disabled={isGenerating}>
+                {isGenerating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Simulando...

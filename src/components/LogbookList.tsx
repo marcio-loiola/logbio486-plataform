@@ -1,29 +1,16 @@
-import { useAppSelector } from '@/store/hooks';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Ship, Fuel, Navigation, Droplets, Thermometer } from 'lucide-react';
+import { Ship, Calendar, FileText } from 'lucide-react';
 import { format } from 'date-fns';
+import { getLogbooks } from '@/services/api';
 
 export default function LogbookList() {
-  const { entries, loading } = useAppSelector((state) => state.logbook);
+  const { data: entries, isLoading } = useQuery({
+    queryKey: ['logbooks'],
+    queryFn: getLogbooks,
+  });
 
-  const getBiofoulingColor = (level?: string) => {
-    switch (level) {
-      case 'none':
-        return 'bg-green-eco text-white';
-      case 'light':
-        return 'bg-teal-bright text-white';
-      case 'moderate':
-        return 'bg-yellow-500 text-white';
-      case 'heavy':
-        return 'bg-red-500 text-white';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
@@ -44,7 +31,7 @@ export default function LogbookList() {
     );
   }
 
-  if (entries.length === 0) {
+  if (!entries || entries.length === 0) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -71,63 +58,20 @@ export default function LogbookList() {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Ship className="h-5 w-5" />
-                  {entry.vessel_name}
+                  Ship ID: {entry.ship_id}
                 </CardTitle>
-                <CardDescription>
-                  {format(new Date(entry.entry_date), 'PPP')}
+                <CardDescription className="flex items-center gap-1 mt-1">
+                  <Calendar className="h-3 w-3" />
+                  {format(new Date(entry.date), 'PPP p')}
                 </CardDescription>
               </div>
-              {entry.biofouling_level && (
-                <Badge className={getBiofoulingColor(entry.biofouling_level)}>
-                  {entry.biofouling_level}
-                </Badge>
-              )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <Navigation className="h-4 w-4 text-ocean-medium" />
-                <span className="text-muted-foreground">Velocity:</span>
-                <span className="font-medium">{entry.velocity} kn</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Fuel className="h-4 w-4 text-ocean-medium" />
-                <span className="text-muted-foreground">Fuel:</span>
-                <span className="font-medium">{entry.fuel_consumption} L/MT</span>
-              </div>
-              {entry.water_temperature && (
-                <div className="flex items-center gap-2">
-                  <Thermometer className="h-4 w-4 text-ocean-medium" />
-                  <span className="text-muted-foreground">Temp:</span>
-                  <span className="font-medium">{entry.water_temperature}°C</span>
-                </div>
-              )}
-              {entry.salinity && (
-                <div className="flex items-center gap-2">
-                  <Droplets className="h-4 w-4 text-ocean-medium" />
-                  <span className="text-muted-foreground">Salinity:</span>
-                  <span className="font-medium">{entry.salinity} PSU</span>
-                </div>
-              )}
+          <CardContent>
+            <div className="flex items-start gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground mt-1" />
+              <p className="text-sm text-foreground">{entry.description}</p>
             </div>
-            
-            <Separator />
-            
-            <div className="text-sm">
-              <p className="text-muted-foreground mb-1">Route:</p>
-              <p className="font-medium">{entry.route}</p>
-            </div>
-
-            {entry.observations && (
-              <>
-                <Separator />
-                <div className="text-sm">
-                  <p className="text-muted-foreground mb-1">Observations:</p>
-                  <p className="text-foreground">{entry.observations}</p>
-                </div>
-              </>
-            )}
           </CardContent>
         </Card>
       ))}

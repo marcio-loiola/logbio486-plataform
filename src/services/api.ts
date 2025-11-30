@@ -1,4 +1,21 @@
-// Types
+// Types - Frontend & API (Standardized)
+
+export interface CriticalShip {
+  id: number;
+  name: string;
+  risk: number;
+  level: string;
+}
+
+export interface DashboardData {
+  fleet_average_risk: number;
+  critical_ships: CriticalShip[];
+  total_extra_fuel_tons: number;
+  total_savings_money: number;
+  total_ships: number;
+  risk_level: string;
+}
+
 export interface KPIData {
   id: string;
   title: string;
@@ -37,77 +54,136 @@ export interface PredictionResult {
   chartData: TimeSeriesPoint[];
 }
 
-// Mock Data
-const MOCK_FLEET_OVERVIEW: FleetOverview = {
-  totalShips: 45,
-  activeShips: 42,
-  averageEfficiency: 87.5,
-  kpis: [
-    {
-      id: '1',
-      title: 'Eficiência Média',
-      value: 87.5,
-      unit: '%',
-      trend: 'up',
-      trendValue: '+2.1%',
-      status: 'success',
-    },
-    {
-      id: '2',
-      title: 'Risco de Bioincrustação',
-      value: 'Baixo',
-      unit: '',
-      trend: 'neutral',
-      trendValue: 'Estável',
-      status: 'info',
-    },
-    {
-      id: '3',
-      title: 'Consumo de Combustível',
-      value: 1250,
-      unit: 'ton',
-      trend: 'down',
-      trendValue: '-5.4%',
-      status: 'success',
-    },
-    {
-      id: '4',
-      title: 'Manutenções Pendentes',
-      value: 3,
-      unit: '',
-      trend: 'up',
-      trendValue: '+1',
-      status: 'warning',
-    },
-  ],
-  performanceHistory: Array.from({ length: 30 }, (_, i) => ({
-    date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    value: 80 + Math.random() * 15,
-    type: 'historical',
-  })),
+export interface Ship {
+  id: number;
+  name: string;
+  imo: string;
+  ship_class: string;
+}
+
+export interface Logbook {
+  id: number;
+  ship_id: number;
+  session_id: string;
+  event_name: string;
+  start_date: string;
+  end_date: string;
+  duration: number;
+  distance: number;
+  aft_draft: number;
+  fwd_draft: number;
+  mid_draft: number;
+  trim: number;
+  displacement: number;
+  beaufort_scale: string;
+  sea_condition: string;
+  beaufort_scale_desc: string;
+  sea_condition_desc: string;
+  speed: number;
+  speed_gps: number;
+  port: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface LogbookCreate {
+  ship_id: number;
+  description: string; // Keeping this for compatibility if needed, or should be updated to match new structure? 
+  // The prompt didn't specify the CREATE payload, only the GET response. 
+  // I'll keep it simple for now or assume it matches a subset of Logbook.
+  date: string;
+}
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+export const getDashboard = async (): Promise<DashboardData> => {
+  try {
+    const response = await fetch(`${API_URL}/dashboard`);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch dashboard data:', error);
+    throw error;
+  }
 };
 
 export const getFleetOverview = async (): Promise<FleetOverview> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  return MOCK_FLEET_OVERVIEW;
+  try {
+    const response = await fetch(`${API_URL}/fleet/overview`);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch from API:', error);
+    throw error;
+  }
 };
 
 export const generateInsight = async (params: PredictionParams): Promise<PredictionResult> => {
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-  
-  // Mock prediction logic
-  const lastValue = 85;
-  const futureData: TimeSeriesPoint[] = Array.from({ length: params.days }, (_, i) => ({
-    date: new Date(Date.now() + (i + 1) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    value: lastValue - (Math.random() * 0.5 * (i + 1)), // Degradation over time
-    type: 'prediction',
-  }));
+  try {
+    const response = await fetch(`${API_URL}/predictions/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
 
-  return {
-    fuelConsumption: params.speed * 20 * params.days,
-    biofoulingRisk: Math.min(100, 10 + params.days * 1.5),
-    maintenanceDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    chartData: futureData,
-  };
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to generate insight:', error);
+    throw error;
+  }
+};
+
+export const getShips = async (): Promise<Ship[]> => {
+  try {
+    const response = await fetch(`${API_URL}/ships/`);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch ships:', error);
+    throw error;
+  }
+};
+
+export const getLogbooks = async (): Promise<Logbook[]> => {
+  try {
+    const response = await fetch(`${API_URL}/logbooks/`);
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch logbooks:', error);
+    throw error;
+  }
+};
+
+export const createLogbook = async (logbook: LogbookCreate): Promise<Logbook> => {
+  try {
+    const response = await fetch(`${API_URL}/logbooks/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(logbook),
+    });
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to create logbook:', error);
+    throw error;
+  }
 };

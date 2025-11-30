@@ -46,46 +46,19 @@ A aplicação oferece uma interface moderna e responsiva, incluindo uma landing 
 
 ## 🚦 Guia de Execução
 
-Siga os passos abaixo para rodar o projeto localmente:
+Para instruções detalhadas sobre como configurar e rodar o projeto utilizando **Bun**, consulte o arquivo [docs/RUNNING.md](docs/RUNNING.md).
 
-### Pré-requisitos
-
-- [Bun](https://bun.sh/) (v1.0 ou superior)
-
-### Instalação
-
-1. Clone o repositório (se ainda não o fez):
-   ```bash
-   git clone <URL_DO_REPOSITORIO>
-   ```
-
-2. Instale as dependências:
-   ```bash
-   bun install
-   ```
-   *Nota: Se estiver no Windows e encontrar erros com scripts (ex: esbuild), tente:*
-   ```bash
-   bun install --ignore-scripts
-   ```
-
-### Rodando o Projeto
-
-Para iniciar o servidor de desenvolvimento:
+### Quick Start
 
 ```bash
+# Instalar dependências (Windows: use --ignore-scripts se falhar)
+bun install --ignore-scripts
+
+# Rodar servidor de desenvolvimento
 bun run dev
 ```
 
-*Se houver erros ao iniciar o servidor no Windows, use o comando direto:*
-```bash
+*Se houver erro ao iniciar no Windows, use o comando direto:*
+```powershell
 bun node_modules/vite/bin/vite.js
 ```
-
-O projeto estará acessível em `http://localhost:8080` (ou outra porta indicada no terminal).
-
-### Scripts Disponíveis
-
-- `bun run dev`: Inicia o servidor de desenvolvimento.
-- `bun run build`: Gera a build de produção.
-- `bun run lint`: Executa a verificação de código (linting).
-- `bun run preview`: Visualiza a build de produção localmente.
