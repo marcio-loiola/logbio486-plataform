@@ -10,8 +10,13 @@ import { KPICard } from '@/components/dashboard/KPICard';
 import { TimeSeriesChart } from '@/components/dashboard/TimeSeriesChart';
 import { PredictionComponent } from '@/components/prediction/PredictionComponent';
 import { getFleetOverview, getShips } from '@/services/api';
+import { getIntegrationsHealth, getOceanEnvironment } from '@/services/api-integrations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LogbookList from '@/components/LogbookList';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, XCircle, Waves, Thermometer, Activity, Plug } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -51,6 +56,19 @@ export default function Dashboard() {
   const { data: ships, isLoading: isLoadingShips } = useQuery({
     queryKey: ['ships'],
     queryFn: getShips,
+  });
+
+  const { data: integrationsHealth } = useQuery({
+    queryKey: ['integrationsHealth'],
+    queryFn: getIntegrationsHealth,
+    refetchInterval: 60000,
+  });
+
+  const { data: oceanEnv } = useQuery({
+    queryKey: ['oceanEnvironment'],
+    queryFn: getOceanEnvironment,
+    refetchInterval: 300000, // 5 minutes
+    retry: 1,
   });
 
   return (
@@ -141,7 +159,7 @@ export default function Dashboard() {
                 />
               </div>
               <div className="lg:col-span-1 space-y-4">
-                {/* Side widgets could go here */}
+                {/* Fleet Status */}
                 <div className="bg-[#003950] rounded-xl p-6 text-white h-full flex flex-col justify-between relative overflow-hidden">
                   <div className="relative z-10">
                     <h3 className="font-bold text-lg mb-2">Status da Frota</h3>
@@ -166,6 +184,85 @@ export default function Dashboard() {
                   <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
                   <div className="absolute top-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
                 </div>
+
+                {/* Integrations Status */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                        <Plug className="h-4 w-4" />
+                        Integrações
+                      </CardTitle>
+                      <Link to="/integrations" className="text-xs text-[#003950] hover:underline">
+                        Ver todas
+                      </Link>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {integrationsHealth ? (
+                      <div className="space-y-2">
+                        {Object.entries(integrationsHealth).slice(0, 3).map(([service, status]: [string, any]) => (
+                          <div key={service} className="flex items-center justify-between text-sm">
+                            <span className="text-slate-600 capitalize">
+                              {service.replace('_', ' ').substring(0, 15)}
+                            </span>
+                            {status.available ? (
+                              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-red-500" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-slate-400">Carregando...</div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Ocean Environment */}
+                {oceanEnv && (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                          <Waves className="h-4 w-4" />
+                          Ambiente Oceânico
+                        </CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <Thermometer className="h-4 w-4" />
+                            Temperatura
+                          </div>
+                          <span className="font-semibold text-[#003950]">
+                            {oceanEnv.temperature.toFixed(1)}°C
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm text-slate-600">
+                            <Waves className="h-4 w-4" />
+                            Ondas
+                          </div>
+                          <span className="font-semibold text-[#003950]">
+                            {oceanEnv.wave_height.toFixed(1)}m
+                          </span>
+                        </div>
+                        <div className="pt-2 border-t border-slate-200">
+                          <Link 
+                            to="/integrations" 
+                            className="text-xs text-[#003950] hover:underline flex items-center gap-1"
+                          >
+                            Ver detalhes <Activity className="h-3 w-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </TabsContent>

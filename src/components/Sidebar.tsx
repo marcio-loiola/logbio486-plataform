@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Globe, Brain, Ship, ChevronRight } from 'lucide-react';
+import { Globe, Brain, Ship, ChevronRight, Plug, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import logoLogBio from '@/assets/logoLogBio.png';
 
@@ -9,6 +9,7 @@ export const Sidebar = () => {
 
   const isActive = (path: string) => {
     if (path === '/ship' && pathname.startsWith('/ship')) return true;
+    if (path === '/cleaning-recommendations' && pathname.startsWith('/cleaning')) return true;
     return pathname === path;
   };
 
@@ -22,6 +23,16 @@ export const Sidebar = () => {
       name: 'Predição',
       path: '/prediction',
       icon: Brain,
+    },
+    {
+      name: 'Integrações',
+      path: '/integrations',
+      icon: Plug,
+    },
+    {
+      name: 'Recomendações',
+      path: '/cleaning-recommendations',
+      icon: AlertTriangle,
     },
     {
       name: 'Visão de Navio',

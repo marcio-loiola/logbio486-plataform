@@ -18,6 +18,8 @@ import { ShipLayout } from "./layouts/ShipLayout";
 import FleetOverview from "./pages/FleetOverview";
 import Prediction from "./pages/Prediction";
 import ShipList from "./pages/ShipList";
+import Integrations from "./pages/Integrations";
+import CleaningRecommendations from "./pages/CleaningRecommendations";
 import ShipBasicData from "./pages/ship/ShipBasicData";
 import ShipRadar from "./pages/ship/ShipRadar";
 import ShipFinancial from "./pages/ship/ShipFinancial";
@@ -39,6 +41,8 @@ const App = () => (
             <Route element={<MainLayout />}>
               <Route path="/dashboard" element={<FleetOverview />} />
               <Route path="/prediction" element={<Prediction />} />
+              <Route path="/integrations" element={<Integrations />} />
+              <Route path="/cleaning-recommendations" element={<CleaningRecommendations />} />
               
               <Route path="/ship" element={<ShipList />} />
               
