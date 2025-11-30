@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Menu, X, Anchor } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import logoLogBio from '@/assets/logoLogBio.png';
+import logoLogBioVerde from '@/assets/logoLogBioVerde.png';
 
 interface LandingHeaderProps {
   language: "en" | "pt";
@@ -37,17 +39,11 @@ export const LandingHeader = ({ language, onLanguageChange }: LandingHeaderProps
     >
       <div className="container mx-auto px-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="bg-[#003950] p-2 rounded-lg">
-            <Anchor className="h-6 w-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <span className={cn("text-xl font-bold leading-none", isScrolled ? "text-[#003950]" : "text-white")}>
-              LogBio
-            </span>
-            <span className={cn("text-[10px] font-medium opacity-80", isScrolled ? "text-[#003950]" : "text-white")}>
-              Powered by Transpetro design guidelines
-            </span>
-          </div>
+          <img 
+            src={isScrolled ? logoLogBioVerde : logoLogBio} 
+            alt="LogBio" 
+            className="h-16 w-auto transition-opacity duration-300" 
+          />
         </div>
 
         {/* Desktop Nav */}

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Globe, Brain, Ship, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import logoLogBio from '@/assets/logoLogBio.png';
 
 export const Sidebar = () => {
   const location = useLocation();
@@ -33,7 +34,7 @@ export const Sidebar = () => {
     <div className="h-screen w-64 bg-[#003950] flex flex-col fixed left-0 top-0 z-50 text-white">
       {/* Logo */}
       <div className="p-6 border-b border-[#004d6b]">
-        <h1 className="text-2xl font-bold tracking-wider">LOGBIO</h1>
+        <img src={logoLogBio} alt="LogBio" className="h-18 w-auto" />
       </div>
 
       {/* Navigation */}

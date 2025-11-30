@@ -94,7 +94,8 @@ export interface LogbookCreate {
   date: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// Use relative path to leverage Vite proxy, or full URL if VITE_API_URL is set
+const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 export const getDashboard = async (): Promise<DashboardData> => {
   try {
