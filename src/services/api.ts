@@ -217,6 +217,13 @@ export const getDashboard = async (): Promise<DashboardData> => {
     setApiStatus('connected');
     const fleetSummary: FleetSummary = await response.json();
     
+    // Validate data integrity
+    if (!fleetSummary || !fleetSummary.ships || fleetSummary.ships.length === 0) {
+      console.warn('API returned empty fleet summary. Using mock data.');
+      setApiStatus('disconnected');
+      return MOCK_DASHBOARD;
+    }
+    
     // Adapter: Convert FleetSummary to DashboardData
     const criticalShips = fleetSummary.ships
       .filter(s => s.avg_bio_index > 5) // Threshold for critical/high
