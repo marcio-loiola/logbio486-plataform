@@ -14,6 +14,9 @@ import NotFound from "./pages/NotFound";
 import { MainLayout } from "./layouts/MainLayout";
 import { ShipLayout } from "./layouts/ShipLayout";
 
+// Protection
+import { ProtectedRoute } from "./components/ProtectedRoute";
+
 // Pages
 import FleetOverview from "./pages/FleetOverview";
 import Prediction from "./pages/Prediction";
@@ -38,20 +41,22 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             
             {/* Main App Routes with Sidebar */}
-            <Route element={<MainLayout />}>
-              <Route path="/dashboard" element={<FleetOverview />} />
-              <Route path="/prediction" element={<Prediction />} />
-              <Route path="/integrations" element={<Integrations />} />
-              <Route path="/cleaning-recommendations" element={<CleaningRecommendations />} />
-              
-              <Route path="/ship" element={<ShipList />} />
-              
-              {/* Ship Details Routes */}
-              <Route path="/ship/:id" element={<ShipLayout />}>
-                <Route index element={<Navigate to="basic" replace />} />
-                <Route path="basic" element={<ShipBasicData />} />
-                <Route path="radar" element={<ShipRadar />} />
-                <Route path="financial" element={<ShipFinancial />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<MainLayout />}>
+                <Route path="/dashboard" element={<FleetOverview />} />
+                <Route path="/prediction" element={<Prediction />} />
+                <Route path="/integrations" element={<Integrations />} />
+                <Route path="/cleaning-recommendations" element={<CleaningRecommendations />} />
+
+                <Route path="/ship" element={<ShipList />} />
+
+                {/* Ship Details Routes */}
+                <Route path="/ship/:id" element={<ShipLayout />}>
+                  <Route index element={<Navigate to="basic" replace />} />
+                  <Route path="basic" element={<ShipBasicData />} />
+                  <Route path="radar" element={<ShipRadar />} />
+                  <Route path="financial" element={<ShipFinancial />} />
+                </Route>
               </Route>
             </Route>
 
