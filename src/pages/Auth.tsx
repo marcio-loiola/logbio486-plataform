@@ -10,12 +10,20 @@ import heroShip from '@/assets/hero-ship.jpg';
 import { Ship } from 'lucide-react';
 
 const emailSchema = z.string().email('Invalid email address'); // Keeping email validation for now as Supabase expects email
-const passwordSchema = z.string().min(6, 'Password must be at least 6 characters');
+const passwordSchema = z
+  .string()
+  .min(8, 'A senha deve ter pelo menos 8 caracteres')
+  .regex(/[A-Z]/, 'A senha deve conter pelo menos uma letra maiúscula')
+  .regex(/[a-z]/, 'A senha deve conter pelo menos uma letra minúscula')
+  .regex(/[0-9]/, 'A senha deve conter pelo menos um número')
+  .regex(/[^A-Za-z0-9]/, 'A senha deve conter pelo menos um caractere especial');
 
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -27,24 +35,47 @@ export default function Auth() {
     });
   }, [navigate]);
 
+  useEffect(() => {
+    let timeoutId: number;
+    if (failedAttempts >= 5) {
+      setIsLocked(true);
+      toast({
+        title: 'Bloqueado',
+        description: 'Muitas tentativas falhas. Aguarde 60 segundos.',
+        variant: 'destructive',
+      });
+      timeoutId = window.setTimeout(() => {
+        setIsLocked(false);
+        setFailedAttempts(0);
+      }, 60000);
+    }
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, [failedAttempts, toast]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // For this demo/hackathon, we might want to relax email validation if the user enters a simple ID
-    // But Supabase requires email. So we assume they enter an email.
-    // If we want to support "CPF/Matrícula", we'd need a mapping or backend logic, 
-    // but for the UI we'll label it "CPF/Matrícula" and expect an email for the actual auth call.
-    
+    if (isLocked) {
+      toast({ title: 'Aviso', description: 'Aguarde antes de tentar novamente.', variant: 'destructive' });
+      return;
+    }
+
     const emailValidation = emailSchema.safeParse(email);
-    const passwordValidation = passwordSchema.safeParse(password);
+    // Allow any non-empty password during login to support legacy users.
+    // Strict schema is reserved for registration/password change.
+    const passwordValidation = password.trim().length > 0;
     
     if (!emailValidation.success) {
-      toast({ title: 'Error', description: 'Por favor, insira um email válido.', variant: 'destructive' });
+      toast({ title: 'Erro', description: 'Email ou senha inválidos.', variant: 'destructive' });
+      setFailedAttempts((prev) => prev + 1);
       return;
     }
     
-    if (!passwordValidation.success) {
-      toast({ title: 'Error', description: 'A senha deve ter pelo menos 6 caracteres.', variant: 'destructive' });
+    if (!passwordValidation) {
+      toast({ title: 'Erro', description: 'Email ou senha inválidos.', variant: 'destructive' });
+      setFailedAttempts((prev) => prev + 1);
       return;
     }
 
@@ -57,8 +88,11 @@ export default function Auth() {
     setLoading(false);
 
     if (error) {
-      toast({ title: 'Erro', description: 'Falha na autenticação. Verifique suas credenciais.', variant: 'destructive' });
+      setFailedAttempts((prev) => prev + 1);
+      // Mensagem genérica para não dar dicas sobre a existência do usuário
+      toast({ title: 'Erro', description: 'Email ou senha inválidos.', variant: 'destructive' });
     } else {
+      setFailedAttempts(0);
       navigate('/dashboard');
     }
   };
@@ -115,10 +149,10 @@ export default function Auth() {
 
             <Button 
               type="submit" 
-              className="w-full h-12 bg-[#003950] hover:bg-[#004d6b] text-white font-bold rounded-xl text-lg mt-4 transition-colors"
-              disabled={loading}
+              className="w-full h-12 bg-[#003950] hover:bg-[#004d6b] text-white font-bold rounded-xl text-lg mt-4 transition-colors disabled:opacity-50"
+              disabled={loading || isLocked}
             >
-              {loading ? 'Entrando...' : 'Entrar'}
+              {loading ? 'Entrando...' : isLocked ? 'Bloqueado' : 'Entrar'}
             </Button>
           </form>
         </div>
